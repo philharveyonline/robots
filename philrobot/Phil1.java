@@ -12,30 +12,26 @@ import java.awt.*;
 public class Phil1 extends Robot
 {
     private int _direction = 1;
+    private int _spinSize = 30;
 
 	/**
 	 * run: Phil1's default behavior
 	 */
 	public void run() {
-		// Initialization of the robot should be put here
-
-
 		setColors(Color.BLACK, Color.YELLOW, Color.YELLOW); // body,gun,radar
 
-		// Robot main loop
 		while(true) {
-			// Replace the next 4 lines with any behavior you would like
             turn();
 		}
 	}
 
     private void turn() {
-        //ahead(10);
+        ahead(30);
         spin();
     }
 
     private void spin() {
-        turnRight(10 * _direction);
+        turnRight(_spinSize * _direction);
     }
 
     /**
@@ -44,11 +40,11 @@ public class Phil1 extends Robot
 	public void onScannedRobot(ScannedRobotEvent e) {
 
         turnRight(e.getBearing());
-        if(e.getDistance() > 120) {
+        if(e.getDistance() > 200) {
             ahead(e.getDistance() / 2);
             scan();
         }
-        else if(e.getDistance() > 20) {
+        else if(e.getDistance() > 40) {
             fire(1);
         }
         else {
@@ -60,15 +56,20 @@ public class Phil1 extends Robot
 	 * onHitByBullet: What to do when you're hit by a bullet
 	 */
 	public void onHitByBullet(HitByBulletEvent e) {
-		back(10);
-        turn();
+        double absBearingOfBullet = Math.abs(e.getBearingRadians());
+        if(absBearingOfBullet < 0.25 * Math.PI / 4.0 || absBearingOfBullet > 0.75 * Math.PI) {
+            // bullet is roughly in line with our direction of travel so spin before fleeing
+            turnLeft(90);
+            ahead(30);
+            turn();
+        }
 	}
 
 	/**
 	 * onHitWall: What to do when you hit a wall
 	 */
 	public void onHitWall(HitWallEvent e) {
-		// Replace the next line with any behavior you would like
 		back(20);
+        spin();
 	}
 }
