@@ -1,6 +1,5 @@
 package philrobot;
 import robocode.*;
-import robocode.Robot;
 
 import java.awt.*;
 
@@ -9,46 +8,63 @@ import java.awt.*;
 /**
  * Phil1 - a robot by Phil
  */
-public class Phil1 extends Robot
+public class Phil1 extends AdvancedRobot
 {
-    private int _direction = 1;
-    private int _spinSize = 30;
-
-	/**
-	 * run: Phil1's default behavior
-	 */
 	public void run() {
 		setColors(Color.BLACK, Color.YELLOW, Color.YELLOW); // body,gun,radar
 
 		while(true) {
-            turn();
-		}
+            setTurnRight(10000);
+            setMaxVelocity(5);
+            // Start moving (and turning)
+            ahead(10000);
+        }
 	}
 
-    private void turn() {
-        ahead(30);
-        spin();
-    }
-
     private void spin() {
-        turnRight(_spinSize * _direction);
+        turnRight(30);
     }
 
+    private boolean foundVictim(ScannedRobotEvent e) {
+        final boolean retVal;
+        if(getEnergy() / e.getEnergy() < 0.2) {
+            retVal = false;
+        }
+        else if(e.getDistance() > 500) {
+            retVal = false;
+        }
+        else if (e.getVelocity() > 4) {
+            retVal = false;
+        }
+        else {
+            retVal = true;
+        }
+
+        out.println("foundVictim returning " + retVal + " for ScannedRobotEvent" + e);
+        return retVal;
+    }
     /**
 	 * onScannedRobot: What to do when you see another robot
 	 */
 	public void onScannedRobot(ScannedRobotEvent e) {
 
+        if(!foundVictim(e)) {
+            return;
+        }
+        stop();
         turnRight(e.getBearing());
-        if(e.getDistance() > 200) {
-            ahead(e.getDistance() / 2);
+        if(e.getDistance() > 100 && e.getDistance() < 300) {
+            out.println("Approaching " + e.getName() + " which has distance " + e.getDistance());
+            ahead(e.getDistance() / 2.0);
             scan();
         }
         else if(e.getDistance() > 40) {
+            out.println("Firing lightly at " + e.getName() + " which has distance " + e.getDistance());
             fire(1);
         }
         else {
-            fire(4);
+            out.println("Firing strongly at " + e.getName() + " which has distance " + e.getDistance());
+            fire(3);
         }
 	}
 
@@ -61,7 +77,6 @@ public class Phil1 extends Robot
             // bullet is roughly in line with our direction of travel so spin before fleeing
             turnLeft(90);
             ahead(30);
-            turn();
         }
 	}
 
@@ -70,6 +85,7 @@ public class Phil1 extends Robot
 	 */
 	public void onHitWall(HitWallEvent e) {
 		back(20);
+        spin();
         spin();
 	}
 }
